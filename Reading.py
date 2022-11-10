@@ -1,10 +1,4 @@
-def read(self):
-    '''Method for reading the clauses from the input file.
-
-    Returns:
-        list -- list of clauses
-    '''
-
+def read(file):
     # Initialize clauses list.
     clauses = []
 
@@ -12,7 +6,7 @@ def read(self):
     vars_tmp = set()
 
     # Start reading from the file.
-    with open(self.file, 'r') as input_file: #opens the file for reading
+    with open(file, 'r') as input_file: #opens the file for reading
         for line in input_file: #for every line in the input file
             parsed = line.split() #function that splits the line by every element (between the spaces)
 
@@ -23,7 +17,7 @@ def read(self):
                 eff_parsed = parsed[:-1] #-1 means splitting on the last item (which is the 0)
                 clause = set() #creates an empty set, which will be the clauses
                 for lit in eff_parsed: #goes through every item in the line
-                    lit = int(lit) #makes the lit a integer
+                    lit = int(lit) #makes the list an integer
                     clause.add(lit) #adds every item as a integer to the clause
 
                     # Collect variable.
@@ -32,7 +26,6 @@ def read(self):
                 clauses.append(list(clause))
 
     # Initialize all collected variables, e.g. {'115': [False] ...} - where [truth_val]
-    self.vars = dict.fromkeys(vars_tmp, False)
     return clauses
 
-read("sudoku-rules-9x9.txt")
+claus = read("sudoku-rules-9x9.txt")
