@@ -28,4 +28,3 @@ def read(file):
     # Initialize all collected variables, e.g. {'115': [False] ...} - where [truth_val]
     return clauses
 
-claus = read("sudoku-rules-9x9.txt")
