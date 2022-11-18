@@ -1,6 +1,5 @@
 from translate_sudokus import load_cnfs
-sudokus = load_cnfs('./sudokus/1000 sudokus.txt')
-sudoku = sudokus[0]
+
 def read(file):
     # Initialize clauses list.
 
@@ -41,6 +40,4 @@ def read_dimacs(dimacs_file):
     knowledge_base = [line.replace("  ", " ").replace(" 0", "").split(" ") for line in lines]
     return knowledge_base
 
-x = read_dimacs(sudoku)
 
-x = [[int(j) for j in i] for i in x]
