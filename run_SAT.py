@@ -137,5 +137,3 @@ et = time.time()
 # get the execution time
 elapsed_time = et - st
 print('Execution time:', elapsed_time, 'seconds')
-
-
