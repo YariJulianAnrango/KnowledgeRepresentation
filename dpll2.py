@@ -26,13 +26,15 @@ def unit_clause(clauses, trues, falses):
     for clause in clauses:
         if len(clause) == 1:
             if clause[0] > 0:
-                if abs(clause[0]) not in trues:
+                if abs(clause[0]) not in trues and abs(clause[0]) not in falses:
                     trues += [abs(clause[0])]
+                    clauses.remove(clause)
+                    removed = True
             elif clause[0] < 0:
-                if abs(clause[0]) not in falses:
+                if abs(clause[0]) not in falses and abs(clause[0]) not in trues:
                     falses += [abs(clause[0])]
-            clauses.remove(clause)
-            removed = True
+                    clauses.remove(clause)
+                    removed = True
     if removed:
         return clauses, trues, falses
     else:
@@ -62,7 +64,7 @@ def pure_literal(clauses, trues, falses):
         for true in pure_trues:
             if true not in trues:
                 trues += [true]
-    if len(pure_trues) > 0 or len(pure_trues) > 0:
+    if len(pure_trues) > 0 or len(pure_falses) > 0:
         return clauses, trues, falses
     else:
         return False
@@ -89,6 +91,7 @@ def remove_lit(clauses, trues, falses):
         for clause in remove_clause:
             clauses.remove(clause)
     return clauses, trues, falses
+
 
 def draw_literal(clauses, trues, falses):
     elements = [abs(x) for l in clauses for x in l] + trues + falses
