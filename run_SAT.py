@@ -16,7 +16,7 @@ from Reading import read_dimacs
 
 
 def dpll2():
-    global trues, falses, sol_t, sol_f, clauses, backtracks, l, split_on
+    global trues, falses, sol_t, sol_f, clauses, backtracks, l, split_on, split
 
     # Removing clauses and literals
     clauses, trues, falses = remove_lit(clauses, trues, falses)
@@ -54,12 +54,55 @@ def dpll2():
     # Remove clauses and literals
     clauses, trues, falses = remove_lit(clauses, trues, falses)
 
-    # Choose where to split
-    l = draw_literal(clauses, trues, falses)
 
-    if l not in trues and l not in falses:
-        trues += [l]
-        split_on += [l]
+    # Choose where to split
+    if split == 'random':
+        l = draw_literal(clauses, trues, falses)
+
+        if l not in trues and l not in falses:
+            trues += [l]
+            split_on += [l]
+    if split == 'MOMs':
+        l = MOMs(clauses)
+
+        if l not in trues and l not in falses:
+            trues += [l]
+            split_on += [l]
+    if split == 'DLCS':
+        l = DLCS(clauses)
+
+        if l < 0:
+            if l not in falses and l not in trues:
+                falses += [abs(l)]
+                split_on += [abs(l)]
+        elif l > 0:
+            if l not in falses and l not in trues:
+                trues += [abs(l)]
+                split_on += [abs(l)]
+    if split == 'DLIS':
+        l = DLIS(clauses)
+
+        if l < 0:
+            if l not in falses and l not in trues:
+                falses += [abs(l)]
+                split_on += [abs(l)]
+        elif l > 0:
+            if l not in falses and l not in trues:
+                trues += [abs(l)]
+                split_on += [abs(l)]
+
+    if split == 'Jeroslow Wang':
+        l = Jeroslow_Wang(clauses)
+
+        if l < 0:
+            if l not in falses and l not in trues:
+                falses += [abs(l)]
+                split_on += [abs(l)]
+        elif l > 0:
+            if l not in falses and l not in trues:
+                trues += [abs(l)]
+                split_on += [abs(l)]
+
 
     # Make copies
     backtrack_clauses = copy.deepcopy(clauses)
@@ -78,10 +121,16 @@ def dpll2():
             trues = backtrack_trues
             falses = backtrack_falses
 
+
             if rem in trues:
                 trues.remove(rem)
-            if rem not in falses:
-                falses += [rem]
+                if rem not in falses:
+                    falses += [rem]
+            elif rem in falses:
+                falses.remove(rem)
+                if rem not in trues:
+                    trues += [rem]
+
         backtracks += 1
 
         dpll2()
@@ -96,6 +145,7 @@ weird_trues = []
 weird_falses = []
 Results_falses = []
 tries = 0
+split = 'random'
 for sudoku in sudokus[:10]: # Change 'sudokus' to 'sudokus[:x]' to run x amount of sudokus
     sudoku_time = time.time()
     print('new sudoku')
