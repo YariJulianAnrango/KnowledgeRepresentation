@@ -96,7 +96,7 @@ weird_trues = []
 weird_falses = []
 Results_falses = []
 tries = 0
-for sudoku in sudokus[:2]: # Change 'sudokus' to 'sudokus[:x]' to run x amount of sudokus
+for sudoku in sudokus[:10]: # Change 'sudokus' to 'sudokus[:x]' to run x amount of sudokus
     sudoku_time = time.time()
     print('new sudoku')
     clauses = read_dimacs(sudoku)
