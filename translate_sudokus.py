@@ -1,15 +1,15 @@
 from math import sqrt
 
 def load_cnfs(path):
-    '''Given the game it will automatically pick the correct rules for the sudoku'''
+
     with open(path, "r") as file_:
-        games = file_.read().splitlines()
-    N = int(sqrt(len(games[0])))
-    with open("./rules/sudoku-rules-"+str(N)+"x"+str(N)+".txt", "r") as file_:
+        sudokus = file_.read().splitlines()
+    amount = int(sqrt(len(sudokus[0])))
+    with open("./rules/sudoku-rules-"+str(amount)+"x"+str(amount)+".txt", "r") as file_:
         rules = file_.read().splitlines()[1:]
-    encGames = [[str((index//N)+1)+str((index%N)+1)+str(l) for index, l in enumerate(game) if l != '.'] for game in games]
-    cnfs = ["\n".join(["p cnf %d %d" % (N*N*N, len(game)+len(rules))] + [l + ' 0' for l in game] + rules) for game in encGames]
-    return cnfs
+    encoded_sudokus = [[str((index//amount)+1)+str((index%amount)+1)+str(l) for index, l in enumerate(sudoku) if l != '.'] for sudoku in sudokus]
+    cnf_files = ["\n".join(["p cnf %d %d" % (amount*amount*amount, len(sudoku)+len(sudoku))] + [l + ' 0' for l in sudoku] + rules) for sudoku in encoded_sudokus]
+    return cnf_files
 
 
 

@@ -31,13 +31,13 @@ def read(file):
     # Initialize all collected variables, e.g. {'115': [False] ...} - where [truth_val]
     return clauses
 
-def read_dimacs(dimacs_file):
-    if ".cnf" in dimacs_file or ".txt" in dimacs_file:
-        with open(dimacs_file, "r") as f:
+def read_sudoku(file):
+    if ".txt" in file or ".cnf" in file:
+        with open(file, "r") as f:
             lines = f.read().splitlines()[1:]
     else:
-        lines = dimacs_file.split("\n")[1:]
-    knowledge_base = [line.replace("  ", " ").replace(" 0", "").split(" ") for line in lines]
-    return knowledge_base
+        lines = file.split("\n")[1:]
+    clauses = [line.replace("  ", " ").replace(" 0", "").split(" ") for line in lines]
+    return clauses
 
 
