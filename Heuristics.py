@@ -68,7 +68,7 @@ def DLCS(clauses):
     else:
         return cn[lit]
 
-
+a = [1,2,3]
 def MOMs(clauses):
     smallest_clause = len(clauses[0])
     for clause in clauses:
