@@ -96,7 +96,6 @@ def DLCS(clauses):
 
 
 def MOMs(clauses):
-    print('input moms',clauses)
     smallest_clause = len(clauses[0])
 
     for clause in clauses:
@@ -110,7 +109,6 @@ def MOMs(clauses):
     for clause in clauses:
         if len(clause) == smallest_clause:
             for l in clause:
-                print('l',l)
                 if l not in cp:
                     if l > 0:
                         cp[l] = 1
@@ -122,8 +120,6 @@ def MOMs(clauses):
                     if l < 0:
                         cn[l] += 1
 
-    print('this is cp:', cp)
-    print('this is cn:', cn)
     endpair = [0, -1]
     for l in cp.keys():
         if -l in cn:
@@ -141,7 +137,6 @@ def MOMs(clauses):
                 highest_occ = ans
                 endpair = [l, ans]
 
-    print('endpair',endpair)
     if endpair[0] != 0:
         return endpair[0]
     else:
