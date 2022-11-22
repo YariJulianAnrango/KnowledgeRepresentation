@@ -1,5 +1,3 @@
-from translate_sudokus import load_cnfs
-
 def read(file):
     # Initialize clauses list.
 

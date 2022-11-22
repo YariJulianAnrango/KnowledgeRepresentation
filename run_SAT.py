@@ -1,13 +1,9 @@
 import time
 import copy
-import random
-import numpy as np
 import csv
 import argparse
 from datetime import datetime
 
-
-from matrix_convert import print_as_matrix
 from dpll2 import empty_clause
 from dpll2 import tautology
 from dpll2 import unit_clause
@@ -15,15 +11,14 @@ from dpll2 import pure_literal
 from dpll2 import remove_lit
 from dpll2 import draw_literal
 from Testing import test_all_clauses
-from translate_sudokus import load_cnfs
-from Reading import read
+from translate_sudokus import read_cnf_file
 from Reading import read_sudoku
 
 
 ### Parsing to run in terminal ###
 parser = argparse.ArgumentParser(description='Run this script to test the SAT Solver.')
 parser.add_argument('-S', metavar='Heuristic', type = int,choices = [1,2,3,4,5],help="Choose an option to pick a Heuristic. -S1 = Random, -S2 = MOM's, -S3 = Jeroslow-Wang, -S4 = DLCS, -S5 = DLIS.")
-parser.add_argument('-I', metavar='Input file', type = str, choices = ['sudoku1','sudoku2','sudoku3','sudoku4','sudoku5','1000 sudokus'], help = 'Choose a sudoku to solve.')
+parser.add_argument('filename', metavar='Input file', type = str, choices = ['sudoku1','sudoku2','sudoku3','sudoku4','sudoku5','1000 sudokus'], help = 'Choose a sudoku to solve.')
 args = parser.parse_args()
 
 
@@ -39,21 +34,23 @@ elif args.S == 5:
     split = 'DLIS'
 
 
-if args.I == '1000 sudokus':
-    multiple_sudokus = load_cnfs('./sudokus/1000 sudokus.txt')
+if args.filename == '1000 sudokus':
+    multiple_sudokus = read_cnf_file('./sudokus/1000 sudokus.txt')
     mul = True
 
 else:
-    if args.I == 'sudoku1':
+    if args.filename == 'sudoku1':
         input = './sudokus/sudoku1.cnf'
-    elif args.I == 'sudoku2':
+    elif args.filename == 'sudoku2':
         input = './sudokus/sudoku2.cnf'
-    elif args.I == 'sudoku3':
+    elif args.filename == 'sudoku3':
         input = './sudokus/sudoku3.cnf'
-    elif args.I == 'sudoku4':
+    elif args.filename == 'sudoku4':
         input = './sudokus/sudoku4.cnf'
-    elif args.I == 'sudoku5':
+    elif args.filename == 'sudoku5':
         input = './sudokus/sudoku5.cnf'
+    else:
+        input = args.filename
 
     sudoku = read_sudoku(input)
     mul = False
@@ -180,7 +177,7 @@ if mul:
     weird_trues = []
     weird_falses = []
     Results_falses = []
-    for sudoku in sudokus[:1]: # Change 'sudokus' to 'sudokus[:x]' to run x amount of sudokus
+    for sudoku in sudokus[:3]: # Change 'sudokus' to 'sudokus[:x]' to run x amount of sudokus
         sudoku_time = time.time()
         print('New sudoku')
         clauses = read_sudoku(sudoku)
@@ -214,29 +211,13 @@ if mul:
         sudoku_end = time.time()
         t = sudoku_end - sudoku_time
         if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81:
-            Results += [[True, len(sol_t), backtracks, t]]
+            Results += [[True, len(sol_t), backtracks, t,tries, sol_t]]
 
         print('Execution time this sudoku:', t, 'seconds')
         print()
 
     et = time.time()
-    cols = ['Result', 'length_sol', 'n_backtracks', 'time']
 
-
-    # datetime object containing current date and time
-    now = datetime.now()
-
-    # dd/mm/YY H:M:S
-    dt_string = now.strftime("%H:%M")
-    with open('results_'+ dt_string + '_' + split + '.csv', 'w') as f:
-
-        write = csv.writer(f)
-        write.writerow(cols)
-        write.writerows(Results)
-
-    elapsed_time = et - st
-    print('Execution time:', elapsed_time, 'seconds')
-    print(Results)
 
 elif not mul:
 
@@ -277,21 +258,21 @@ elif not mul:
     sudoku_end = time.time()
     t = sudoku_end - sudoku_time
     if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81:
-        Results += [[True, len(sol_t), backtracks, t]]
+        Results += [[True, len(sol_t), backtracks, t,tries, sol_t]]
 
-    now = datetime.now()
-
-    cols = ['Result', 'length_sol', 'n_backtracks', 'time']
-
-    dt_string = now.strftime("%H:%M")
-    with open('results_' + dt_string + '_' + split + '.csv', 'w') as f:
-
-        write = csv.writer(f)
-        write.writerow(cols)
-        write.writerows(Results)
-
-    print('Execution time this sudoku:', t, 'seconds')
-    print()
 
 else:
     print('Oh oh')
+
+print('Execution time this sudoku:', t, 'seconds')
+print()
+
+now = datetime.now()
+cols = ['Result', 'length_sol', 'n_backtracks', 'time','retries', 'solution']
+
+dt_string = now.strftime("%H:%M:%S")
+with open('./results/results_' + dt_string + '_' + split + '.csv', 'w') as f:
+
+    write = csv.writer(f)
+    write.writerow(cols)
+    write.writerows(Results)

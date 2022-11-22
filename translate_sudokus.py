@@ -1,6 +1,6 @@
 from math import sqrt
 
-def load_cnfs(path):
+def read_cnf_file(path):
 
     with open(path, "r") as file_:
         sudokus = file_.read().splitlines()
