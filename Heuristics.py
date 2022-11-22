@@ -1,34 +1,49 @@
+from collections import defaultdict
+import random
+import numpy as np
 from itertools import chain
 
-def Jeroslow_Wang(clauses, trues, falses):
-    J = defaultdict(int)
+
+def Jeroslow_Wang(clauses):
+    J = dict()
     for clause in clauses:
         lengthclause = len(clause)
         for l in clause:
-            J[l] += 2 ** (-lengthclause)
+            if l not in J.keys():
+                J[l] = 2 ** (-lengthclause)
+            elif l in J.keys():
+                J[l] += 2 ** (-lengthclause)
 
-        maxpair = [-1, 0]
-        for k in J.keys():
-            sum_J = J[k] + J[-k]
-            if sum_J > maxpair[1] and maxpair[0] != -k:
-                maxpair = [k, sum_J]
+    maxpair = [-1, 0]
+    for k in J.keys():
+        sum_J = J[k] + J[-k]
+        if sum_J > maxpair[1] and maxpair[0] != -k:
+            maxpair = [k, sum_J]
 
-        split = abs(maxpair[0])
+    split = abs(maxpair[0])
+    if -split in J:
         if J[split] >= J[-split]:
             return split
         else:
             return -split
-
+    else:
+        return split
 
 def DLIS(clauses):
-    cp = defaultdict(int)
-    cn = defaultdict(int)
+    cp = dict()
+    cn = dict()
     for clause in clauses:
         for l in clause:
-            if l > 0:
-                cp[l] += 1
-            if l < 0:
-                cn[l] += 1
+            if l not in cp:
+                if l > 0:
+                    cp[l] = 1
+                if l < 0:
+                    cn[l] = 1
+            elif l in cp:
+                if l > 0:
+                    cp[l] += 1
+                if l < 0:
+                    cn[l] += 1
 
     maxpaircp = [0, -1]
     for k, v in cp.items():
@@ -47,45 +62,87 @@ def DLIS(clauses):
 
 
 def DLCS(clauses):
-    cp = defaultdict(int)
-    cn = defaultdict(int)
+    cp = dict()
+    cn = dict()
     for clause in clauses:
         for l in clause:
-            if l > 0:
-                cp[l] += 1
-            if l < 0:
-                cn[l] += 1
+            if l not in cp:
+                if l > 0:
+                    cp[l] = 1
+                if l < 0:
+                    cn[l] = 1
+            elif l in cp:
+                if l > 0:
+                    cp[l] += 1
+                if l < 0:
+                    cn[l] += 1
 
     largest_sum = 0
-    combined = chain(cp, cn)
-    for l in combined:
-        if cp[l] + cn[l] > largest_sum:
-            largest_sum = cp[l] + cn[l]
-            lit = l
+    largestpaircp = [0,-1]
+    largestpaircn = [0,-1]
+    for l in cp.keys():
+        if cp[l] + cn[-l] > largest_sum:
+            largest_sum = cp[l] + cn[-l]
+            largest_cp = cp[l]
+            largest_cn = cn[-l]
+            largestpaircp = [l,largest_cp]
+            largestpaircn = [-l,largest_cn]
 
-    if cp[lit] > cn[lit]:
-        return cp[lit]
+
+    if largestpaircp[1] > largestpaircn[1]:
+        return largestpaircp[0]
     else:
-        return cn[lit]
+        return largestpaircn[0]
+
 
 def MOMs(clauses):
+    print('input moms',clauses)
     smallest_clause = len(clauses[0])
+
     for clause in clauses:
-        if len(clause) < smallest_clause:
+        if len(clause) < smallest_clause and len(clause) > 0:
             smallest_clause = len(clause)
-
-    # smallest_clause = min(len(clauses)) <-- weet niet of dit zo kort kan?
-
-    shortest_clauses = []
+    # shortest_clauses = []
+    cp = dict()
+    cn = dict()
+    k = 0.5
     highest_occ = 0
-    number = dict()
     for clause in clauses:
         if len(clause) == smallest_clause:
             for l in clause:
-                number[l] = number.get(l, 0) + 1
-    for l in number.keys():
-        function = (number[l] + number.get(-l, 0)) * 2 ** k + number[l] * number.get(-l, 0)
-        if function > highest_occ:
-            highest_occ = function
-            lit = l
-    return lit
+                print('l',l)
+                if l not in cp:
+                    if l > 0:
+                        cp[l] = 1
+                    if l < 0:
+                        cn[l] = 1
+                elif l in cp:
+                    if l > 0:
+                        cp[l] += 1
+                    if l < 0:
+                        cn[l] += 1
+
+    print('this is cp:', cp)
+    print('this is cn:', cn)
+    endpair = [0, -1]
+    for l in cp.keys():
+        if -l in cn:
+            ans = (cp[l] + cn[-l]) * (2 ** k) + cp[l] * cn[-l]
+        else:
+            ans = (cp[l] + 0) * (2 ** k) + cp[l] * 0
+        if ans > highest_occ:
+            highest_occ = ans
+            endpair = [l, ans]
+
+    for l in cn.keys():
+        if abs(l) not in cp:
+            ans = (0 + cn[l]) * (2 ** k) + 0 * cn[l]
+            if ans > highest_occ:
+                highest_occ = ans
+                endpair = [l, ans]
+
+    print('endpair',endpair)
+    if endpair[0] != 0:
+        return endpair[0]
+    else:
+        return False

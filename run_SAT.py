@@ -1,9 +1,6 @@
 import time
 import copy
-import random
-import numpy as np
 
-from matrix_convert import print_as_matrix
 from dpll2 import empty_clause
 from dpll2 import tautology
 from dpll2 import unit_clause
@@ -13,6 +10,7 @@ from dpll2 import draw_literal
 from Testing import test_all_clauses
 from translate_sudokus import load_cnfs
 from Reading import read_dimacs
+import Heuristics as hs
 
 
 def dpll2():
@@ -54,54 +52,55 @@ def dpll2():
     # Remove clauses and literals
     clauses, trues, falses = remove_lit(clauses, trues, falses)
 
+    if len(clauses) > 0:
+        # Choose where to split
+        if split == 'random':
+            l = draw_literal(clauses, trues, falses)
 
-    # Choose where to split
-    if split == 'random':
-        l = draw_literal(clauses, trues, falses)
+            if l not in trues and l not in falses:
+                trues += [l]
+                split_on += [l]
 
-        if l not in trues and l not in falses:
-            trues += [l]
-            split_on += [l]
-    if split == 'MOMs':
-        l = MOMs(clauses)
+        if split == 'MOMs':
+            l = hs.MOMs(clauses)
 
-        if l not in trues and l not in falses:
-            trues += [l]
-            split_on += [l]
-    if split == 'DLCS':
-        l = DLCS(clauses)
+            if l not in trues and l not in falses:
+                trues += [l]
+                split_on += [l]
+        if split == 'DLCS':
+            l = hs.DLCS(clauses)
 
-        if l < 0:
-            if l not in falses and l not in trues:
-                falses += [abs(l)]
-                split_on += [abs(l)]
-        elif l > 0:
-            if l not in falses and l not in trues:
-                trues += [abs(l)]
-                split_on += [abs(l)]
-    if split == 'DLIS':
-        l = DLIS(clauses)
+            if l < 0:
+                if l not in falses and l not in trues:
+                    falses += [abs(l)]
+                    split_on += [abs(l)]
+            elif l > 0:
+                if l not in falses and l not in trues:
+                    trues += [abs(l)]
+                    split_on += [abs(l)]
+        if split == 'DLIS':
+            l = hs.DLIS(clauses)
 
-        if l < 0:
-            if l not in falses and l not in trues:
-                falses += [abs(l)]
-                split_on += [abs(l)]
-        elif l > 0:
-            if l not in falses and l not in trues:
-                trues += [abs(l)]
-                split_on += [abs(l)]
+            if l < 0:
+                if l not in falses and l not in trues:
+                    falses += [abs(l)]
+                    split_on += [abs(l)]
+            elif l > 0:
+                if l not in falses and l not in trues:
+                    trues += [abs(l)]
+                    split_on += [abs(l)]
 
-    if split == 'Jeroslow Wang':
-        l = Jeroslow_Wang(clauses)
+        if split == 'JW':
+            l = hs.Jeroslow_Wang(clauses)
 
-        if l < 0:
-            if l not in falses and l not in trues:
-                falses += [abs(l)]
-                split_on += [abs(l)]
-        elif l > 0:
-            if l not in falses and l not in trues:
-                trues += [abs(l)]
-                split_on += [abs(l)]
+            if l < 0:
+                if l not in falses and l not in trues:
+                    falses += [abs(l)]
+                    split_on += [abs(l)]
+            elif l > 0:
+                if l not in falses and l not in trues:
+                    trues += [abs(l)]
+                    split_on += [abs(l)]
 
 
     # Make copies
@@ -145,7 +144,7 @@ weird_trues = []
 weird_falses = []
 Results_falses = []
 tries = 0
-split = 'random'
+split = 'JW' # Choose heuristic
 for sudoku in sudokus[:10]: # Change 'sudokus' to 'sudokus[:x]' to run x amount of sudokus
     sudoku_time = time.time()
     print('new sudoku')
@@ -161,7 +160,7 @@ for sudoku in sudokus[:10]: # Change 'sudokus' to 'sudokus[:x]' to run x amount 
     sol_f = []
     dpll2()
 
-    while test_all_clauses(og_clauses, sol_t, sol_f) == False:
+    while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 100:
         print('retrying')
         split_on = []
         backtracks = 0
@@ -169,13 +168,16 @@ for sudoku in sudokus[:10]: # Change 'sudokus' to 'sudokus[:x]' to run x amount 
         falses = []
         sol_t = []
         sol_f = []
+        clauses = copy.deepcopy(og_clauses)
         dpll2()
         Results_falses += [[False, len(sol_f), backtracks]]
         weird_trues += [sol_t]
         weird_falses += [sol_f]
         tries += 1
-    if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81:
-        Results += [[True, len(sol_t), backtracks]]
+    if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 100:
+        Results += [[True, len(sol_t), backtracks, tries]]
+    else:
+        Results += [[False, len(sol_t), backtracks, tries]]
 
     sudoku_end = time.time()
     print('Execution time this sudoku:', sudoku_end-sudoku_time, 'seconds')
