@@ -15,6 +15,8 @@ from translate_sudokus import read_cnf_file
 from Reading import read_sudoku
 import Heuristics as hs
 
+import numpy as np
+
 
 ### Parsing to run in terminal ###
 parser = argparse.ArgumentParser(description='Run this script to test the SAT Solver.')
@@ -25,13 +27,18 @@ args = parser.parse_args()
 
 if args.S == 1:
     split = 'random'
+    all = False
 elif args.S == 2:
+    all = False
     split = 'MOMs'
 elif args.S == 3:
+    all = False
     split = 'JW'
 elif args.S == 4:
+    all = False
     split = 'DLCS'
 elif args.S == 5:
+    all = False
     split = 'DLIS'
 elif args.S == 6:
     all = True
@@ -149,12 +156,11 @@ def dpll2():
                     trues += [abs(l)]
                     split_on += [abs(l)]
 
-
-    # Make copies
     backtrack_clauses = copy.deepcopy(clauses)
     backtrack_trues = copy.deepcopy(trues)
     backtrack_falses = copy.deepcopy(falses)
 
+    # Make copies
     if dpll2():
         return True
     else:
@@ -163,10 +169,9 @@ def dpll2():
             rem = split_on[-1]
             split_on.remove(rem)
 
-            clauses = backtrack_clauses
-            trues = backtrack_trues
-            falses = backtrack_falses
-
+            clauses = copy.deepcopy(backtrack_clauses)
+            trues = copy.deepcopy(backtrack_trues)
+            falses = copy.deepcopy(backtrack_falses)
 
             if rem in trues:
                 trues.remove(rem)
@@ -176,14 +181,19 @@ def dpll2():
                 falses.remove(rem)
                 if rem not in trues:
                     trues += [rem]
-
+            '''
+            print('trues',np.sort(np.array(trues)))
+            print('falses',np.sort(np.array(falses)))
+            print()
+            '''
         backtracks += 1
 
         dpll2()
 
 if all:
     all_results = []
-    for split in ['random','MOMS','JW','DLCS','DLIS']:
+    start = time.time()
+    for split in ['random','MOMs','JW','DLCS','DLIS']:
         if mul:
             st = time.time()
             sudokus = copy.deepcopy(multiple_sudokus)
@@ -191,9 +201,11 @@ if all:
             weird_trues = []
             weird_falses = []
             Results_falses = []
+            s_n = 0
             for sudoku in sudokus:  # Change 'sudokus' to 'sudokus[:x]' to run x amount of sudokus
+                s_n += 1
                 sudoku_time = time.time()
-                print('New sudoku')
+                print('New sudoku.', s_n, 'of',len(sudokus), ', heuristic:', split)
                 clauses = read_sudoku(sudoku)
                 clauses = [[int(j) for j in i] for i in clauses]
                 og_clauses = copy.deepcopy(clauses)
@@ -206,7 +218,7 @@ if all:
                 tries = 0
                 dpll2()
 
-                while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 100:
+                while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 30:
                     tries += 1
                     print('Having trouble with retry', tries, ', retrying...')
                     split_on = []
@@ -223,7 +235,7 @@ if all:
 
                 sudoku_end = time.time()
                 t_su = sudoku_end - sudoku_time
-                if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 100:
+                if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 30:
                     Results += [[True, len(sol_t), backtracks, t_su, tries, split, sol_t, sol_f]]
                 else:
                     Results += [[False, len(sol_t), backtracks, t_su, tries, split,sol_t, sol_f]]
@@ -254,7 +266,7 @@ if all:
             sol_f = []
             dpll2()
 
-            while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 100:
+            while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 30:
                 print('Having trouble with retry', tries, ', retrying...')
                 split_on = []
                 backtracks = 0
@@ -271,7 +283,7 @@ if all:
 
             sudoku_end = time.time()
             t = sudoku_end - sudoku_time
-            if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 100:
+            if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 30:
                 Results += [[True, len(sol_t), backtracks, t, tries, split, sol_t, sol_f]]
             else:
                 Results += [[False, len(sol_t), backtracks, t, tries, split, sol_t, sol_f]]
@@ -279,11 +291,13 @@ if all:
         else:
             print('Oh oh')
 
-        print('Execution time this sudoku:', t, 'seconds')
+        print('Execution time this heuristic:', t, 'seconds')
         print()
         all_results += Results
+    final = time.time()
+    print('Finished all sudokus all heuristics:',final - start,'seconds.')
     now = datetime.now()
-    cols = ['Result', 'length_sol', 'n_backtracks', 'time', 'retries', 'heuristic','solution', 'false solution']
+    cols = ['Result', 'length_sol', 'n_backtracks', 'time', 'retries', 'heuristic','solution', 'false_solution']
     dt_string = now.strftime("%H:%M:%S")
     with open('./results_all_heuristics/results_' + dt_string + '_all_heuristics.csv', 'w') as f:
 
@@ -299,9 +313,11 @@ else:
         weird_trues = []
         weird_falses = []
         Results_falses = []
+        s_n = 0
         for sudoku in sudokus: # Change 'sudokus' to 'sudokus[:x]' to run x amount of sudokus
+            s_n += 1
             sudoku_time = time.time()
-            print('New sudoku')
+            print('New sudoku.', s_n, 'of',len(sudokus), ', heuristic:', split)
             clauses = read_sudoku(sudoku)
             clauses = [[int(j) for j in i] for i in clauses]
             og_clauses = copy.deepcopy(clauses)
@@ -314,9 +330,14 @@ else:
             tries = 0
             dpll2()
 
-            while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 100:
+            while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 30:
                 tries += 1
                 print('Having trouble with retry',tries,', retrying...')
+
+                print('before retrying')
+                print('trues', np.sort(np.array(trues)))
+                print('falses', np.sort(np.array(falses)))
+                print()
                 split_on = []
                 backtracks = 0
                 trues = []
@@ -331,7 +352,7 @@ else:
 
             sudoku_end = time.time()
             t_su = sudoku_end - sudoku_time
-            if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 100:
+            if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 30:
                 Results += [[True, len(sol_t), backtracks, t_su,tries, sol_t, sol_f]]
             else:
                 Results += [[False, len(sol_t), backtracks,t_su, tries, sol_t, sol_f]]
@@ -362,7 +383,7 @@ else:
         sol_f = []
         dpll2()
 
-        while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 100:
+        while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 30:
             print('Having trouble with retry',tries,', retrying...')
             split_on = []
             backtracks = 0
@@ -379,7 +400,7 @@ else:
 
         sudoku_end = time.time()
         t = sudoku_end - sudoku_time
-        if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 100:
+        if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 30:
             Results += [[True, len(sol_t), backtracks, t,tries, sol_t, sol_f]]
         else:
             Results += [[False, len(sol_t), backtracks,t, tries, sol_t, sol_f]]
@@ -391,7 +412,7 @@ else:
     print()
 
     now = datetime.now()
-    cols = ['Result', 'length_sol', 'n_backtracks', 'time','retries', 'solution']
+    cols = ['Result', 'length_sol', 'n_backtracks', 'time','retries', 'solution','false_solution']
 
     dt_string = now.strftime("%H:%M:%S")
     with open('./results/results_' + dt_string + '_' + split + '.csv', 'w') as f:

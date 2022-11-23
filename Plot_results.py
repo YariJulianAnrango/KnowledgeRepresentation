@@ -1,8 +1,14 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-data = pd.read_csv('./results_all_heuristics/results_17:47:42_all_heuristics.csv')
+data = pd.read_csv('./results/results_12:50:18_DLCS.csv', sep = ',')
+data = data[data.Result == 81]
 
+plt.hist(data.length_sol, bins=15)
+plt.title('Amount of backtracks for DLCS')
+plt.xlabel('Amount of backtracks')
+plt.ylabel('Frequency')
+'''
 ran = data[data.heuristic == 'random'].n_backtracks
 mom = data[data.heuristic == 'MOMS'].n_backtracks
 jw = data[data.heuristic == 'JW'].n_backtracks
@@ -41,7 +47,7 @@ def boxplot_runtime(data):
     plt.ylim(bottom=0)
     plt.title('Boxplot of the runtime per heuristic')
 
-
+'''
 
 
 
