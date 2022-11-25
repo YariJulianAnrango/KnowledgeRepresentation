@@ -12,6 +12,7 @@ from dpll2 import draw_literal
 from Testing import test_all_clauses
 from translate_sudokus import read_cnf_file
 from Reading import read_sudoku
+from export_results import generate_output
 import Heuristics as hs
 
 ### Parsing to run in terminal ###
@@ -19,8 +20,7 @@ parser = argparse.ArgumentParser(description='Run this script to test the SAT So
 parser.add_argument('-S', metavar='Heuristic', type=int, choices=[1, 2, 3, 4, 5, 6],
                     help="Choose an option to pick a Heuristic. -S1 = Random, -S2 = MOM's, -S3 = Jeroslow-Wang, -S4 = DLCS, -S5 = DLIS, -S6 = all.")
 parser.add_argument('filename', metavar='Input file', type=str,
-                    choices=['sudoku1', 'sudoku2', 'sudoku3', 'sudoku4', 'sudoku5', '1000 sudokus'],
-                    help="Choose a sudoku to solve. Either pick a single sudoku: sudoku1, ..., sudoku5. Or run 1000 sudokus by typing '1000 sudokus'.")
+                    help="Choose a sudoku to solve. Either pick a single sudoku: sudoku1, ..., sudoku5. Or run 1000 sudokus by typing '1000 sudokus'. You can also pick your own sudoku. Make sure to put it in the sudokus folder. You can find the results in the general folder.")
 args = parser.parse_args()
 
 if args.S == 1:
@@ -57,7 +57,7 @@ else:
     elif args.filename == 'sudoku5':
         input = './sudokus/sudoku5.cnf'
     else:
-        input = args.filename
+        input = './sudokus/' + args.filename
 
     sudoku = read_sudoku(input)
     mul = False
@@ -282,7 +282,7 @@ if all:
             sol_f = []
             dpll2()
 
-            while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 3:
+            while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 100:
                 print('Having trouble with retry', tries, ', retrying...')
                 split_on = []
                 backtracks = 0
@@ -299,11 +299,11 @@ if all:
 
             sudoku_end = time.time()
             t = sudoku_end - sudoku_time
-            if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 3:
+            if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 100:
                 Results += [[True, len(sol_t), backtracks, t, tries, split, sol_t, sol_f]]
             else:
                 Results += [[False, len(sol_t), backtracks, t, tries, split, sol_t, sol_f]]
-
+            generate_output(sol_t,sol_f, args.filename)
         else:
             print('Oh oh')
 
@@ -391,6 +391,7 @@ else:
         sudoku_time = time.time()
         print('New sudoku')
         clauses = sudoku
+        print(clauses)
         clauses = [[int(j) for j in i] for i in clauses]
         og_clauses = copy.deepcopy(clauses)
 
@@ -402,7 +403,7 @@ else:
         sol_f = []
         dpll2()
 
-        while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 3:
+        while test_all_clauses(og_clauses, sol_t, sol_f) == False and tries < 100:
             print('Having trouble with retry', tries, ', retrying...')
             split_on = []
             backtracks = 0
@@ -419,11 +420,11 @@ else:
 
         sudoku_end = time.time()
         t = sudoku_end - sudoku_time
-        if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 3:
+        if test_all_clauses(og_clauses, sol_t, sol_f) and len(sol_t) == 81 or tries < 100:
             Results += [[True, len(sol_t), backtracks, t, tries, sol_t, sol_f]]
         else:
             Results += [[False, len(sol_t), backtracks, t, tries, sol_t, sol_f]]
-
+        generate_output(sol_t,sol_f, args.filename)
     else:
         print('Oh oh')
 
