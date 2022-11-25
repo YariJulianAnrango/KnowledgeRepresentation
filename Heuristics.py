@@ -1,33 +1,20 @@
-from collections import defaultdict
-import random
-import numpy as np
-from itertools import chain
-
-
 def Jeroslow_Wang(clauses):
     J = dict()
+    Jmax = 0
+    literal = 0
     for clause in clauses:
         lengthclause = len(clause)
         for l in clause:
             if l not in J.keys():
                 J[l] = 2 ** (-lengthclause)
+                if J[l] > Jmax:
+                    Jmax = J[l]
+                    literal = l
             elif l in J.keys():
                 J[l] += 2 ** (-lengthclause)
-
-    maxpair = [-1, 0]
-    for k in J.keys():
-        sum_J = J[k] + J[-k]
-        if sum_J > maxpair[1] and maxpair[0] != -k:
-            maxpair = [k, sum_J]
-
-    split = abs(maxpair[0])
-    if -split in J:
-        if J[split] >= J[-split]:
-            return split
-        else:
-            return -split
-    else:
-        return split
+                if J[l] > Jmax:
+                    literal = l
+        return literal
 
 def DLIS(clauses):
     cp = dict()
@@ -101,7 +88,6 @@ def MOMs(clauses):
     for clause in clauses:
         if len(clause) < smallest_clause and len(clause) > 0:
             smallest_clause = len(clause)
-    # shortest_clauses = []
     cp = dict()
     cn = dict()
     k = 0.5
